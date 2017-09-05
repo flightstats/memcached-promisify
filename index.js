@@ -66,6 +66,19 @@ function setPromise(instance, key, value, expires) {
   });
 }
 
+function genericPromise(instance, method, key, value, expires) {
+    return new Promise((resolve, reject) => {
+    instance._cache[method](key, value, expires, (err, data) => {
+      if (err) {
+        reject(err);
+      }
+      else {
+        resolve(data);
+      }
+    });
+  });
+}
+
 /**
  * get a cache item
  * @param {string} key - cache key
@@ -123,6 +136,24 @@ Cache.prototype.set = function(key, data, expires){
  */
 Cache.prototype.del = function(key) {
   return getPromise(this, 'del', this.config.keyPrefix + key);
+};
+
+/**
+ * add an item in the cache
+ * @param {string} key - cache key
+ * @returns {Promise}
+ */
+Cache.prototype.add = function(key, data, expires){
+  return genericPromise(this, 'add', this.config.keyPrefix + key, data, expires);
+};
+
+/**
+ * replace an item in the cache
+ * @param {string} key - cache key
+ * @returns {Promise}
+ */
+Cache.prototype.replace = function(key, data, expires){
+  return genericPromise(this, 'replace', this.config.keyPrefix + key, data, expires);
 };
 
 module.exports = Cache;
