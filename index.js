@@ -156,4 +156,13 @@ Cache.prototype.replace = function(key, data, expires){
   return genericPromise(this, 'replace', this.config.keyPrefix + key, data, expires);
 };
 
+/**
+ * flush the cache
+ * @param {string} key - cache key
+ * @returns {Promise}
+ */
+Cache.prototype.flush = function(key, data, expires){
+  return getPromise(this, 'flush');
+};
+
 module.exports = Cache;
