@@ -33,42 +33,10 @@ function Cache(config, options) {
   this._cache = new Memcached(this.config.cacheHost, options);
 }
 
-function getPromise(instance, method, key) {
-  return new Promise((resolve, reject) => {
-    const cb = (err, data) => {
-      if (err) {
-        reject(err);
-      }
-      else {
-        resolve(data);
-      }
-    };
 
-    if (key) {
-      instance._cache[method](key, cb);
-    }
-    else {
-      instance._cache[method](cb);
-    }
-  });
-}
-
-function setPromise(instance, key, value, expires) {
-  return new Promise((resolve, reject) => {
-    instance._cache.set(key, value, expires, (err, data) => {
-      if (err) {
-        reject(err);
-      }
-      else {
-        resolve(data);
-      }
-    });
-  });
-}
-
-function genericPromise(instance, method, key, value, expires) {
+function genericPromise(instance, method, ...args) {
     return new Promise((resolve, reject) => {
-    instance._cache[method](key, value, expires, (err, data) => {
+    instance._cache[method]( ...args, (err, data) => {
       if (err) {
         reject(err);
       }
@@ -78,6 +46,7 @@ function genericPromise(instance, method, key, value, expires) {
     });
   });
 }
+
 
 /**
  * get a cache item
@@ -85,7 +54,7 @@ function genericPromise(instance, method, key, value, expires) {
  * @returns {Promise}
  */
 Cache.prototype.get = function(key) {
-  return getPromise(this, 'get', `${this.config.keyPrefix}${key}`);
+  return genericPromise(this, 'get', `${this.config.keyPrefix}${key}`);
 };
 
 /**
@@ -94,7 +63,7 @@ Cache.prototype.get = function(key) {
  * @returns {Promise}
  */
 Cache.prototype.utilGet = function(key) {
-  return getPromise(this, 'get', key);
+  return genericPromise(this, 'get', key);
 };
 
 /**
@@ -103,7 +72,7 @@ Cache.prototype.utilGet = function(key) {
  * @returns {Promise}
  */
 Cache.prototype.getMulti = function(keys) {
-  return getPromise(this, 'getMulti', keys);
+  return genericPromise(this, 'getMulti', keys);
 };
 
 /**
@@ -111,7 +80,7 @@ Cache.prototype.getMulti = function(keys) {
  * @returns {Promise}
  */
 Cache.prototype.stats = function() {
-  return getPromise(this, 'stats');
+  return genericPromise(this, 'stats');
 };
 
 /**
@@ -126,7 +95,7 @@ Cache.prototype.set = function(key, data, expires){
     throw new Error('Cache.set: Expiration must be no greater than ' + this.config.maxExpiration + ' seconds.');
   }
 
-  return setPromise(this, this.config.keyPrefix + key, data, expires);
+  return genericPromise(this, 'set', this.config.keyPrefix + key, data, expires);
 };
 
 /**
@@ -135,7 +104,7 @@ Cache.prototype.set = function(key, data, expires){
  * @returns {Promise}
  */
 Cache.prototype.del = function(key) {
-  return getPromise(this, 'del', this.config.keyPrefix + key);
+  return genericPromise(this, 'del', this.config.keyPrefix + key);
 };
 
 /**
@@ -157,12 +126,30 @@ Cache.prototype.replace = function(key, data, expires){
 };
 
 /**
+ * replace an item in the cache
+ * @param {string} key - cache key
+ * @returns {Promise}
+ */
+Cache.prototype.incr = function(key, value, expires){
+  return genericPromise(this, 'incr', this.config.keyPrefix + key, value );
+};
+
+/**
+ * replace an item in the cache
+ * @param {string} key - cache key
+ * @returns {Promise}
+ */
+Cache.prototype.decr = function(key, value, expires){
+  return genericPromise(this, 'decr', this.config.keyPrefix + key, value );
+};
+
+/**
  * flush the cache
  * @param {string} key - cache key
  * @returns {Promise}
  */
 Cache.prototype.flush = function(key, data, expires){
-  return getPromise(this, 'flush');
+  return genericPromise(this, 'flush');
 };
 
 module.exports = Cache;
