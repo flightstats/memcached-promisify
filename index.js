@@ -28,8 +28,10 @@ function Cache(config, options) {
   }
 
   this.config.maxExpiration = options.maxExpiration;
-
-  console.log('creating memcached instance for cache host:', this.config.cacheHost);
+  
+  if (!this.config.hideLogs) {
+    console.log('creating memcached instance for cache host:', this.config.cacheHost);
+  }
   this._cache = new Memcached(this.config.cacheHost, options);
 }
 
